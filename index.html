@@ -235,39 +235,109 @@ document.getElementById("btnPdf").addEventListener("click", () => {
   const doc = new jsPDF({ unit:"pt", format:"a4" });
   let y = 40;
   const pageHeight = doc.internal.pageSize.height;
-  function check(h){ if(y+h>pageHeight-60){ doc.addPage(); y=40; } }
-  function caixa(h,titulo,conteudo){ const x=40, w=520; check(h); doc.rect(x,y,w,h); if(titulo){ doc.setFont("Helvetica","bolditalic"); doc.setFontSize(14); doc.text(titulo,x+w/2,y+20,{align:"center"});} conteudo(x+20,y+40); y+=h+15; }
-  function linhaNegrito(rotulo,valor,x,py){ doc.setFont("Helvetica","bold"); doc.text(rotulo+" ",x,py); const w=doc.getTextWidth(rotulo+" "); doc.setFont("Helvetica","normal"); doc.text(valor,x+w,py); }
+
+  function check(h){ 
+    if(y+h>pageHeight-60){ 
+      doc.addPage(); 
+      y=40; 
+    } 
+  }
+
+  function caixa(h,titulo,conteudo){
+    const x=40, w=520;
+    check(h);
+    doc.rect(x,y,w,h);
+    if(titulo){
+      doc.setFont("Helvetica","bolditalic");
+      doc.setFontSize(14);
+      doc.text(titulo,x+w/2,y+20,{align:"center"});
+    }
+    conteudo(x+20,y+40);
+    y+=h+15;
+  }
+
+  function linhaNegrito(rotulo,valor,x,py){
+    doc.setFont("Helvetica","bold");
+    doc.text(rotulo+" ",x,py);
+    const w=doc.getTextWidth(rotulo+" ");
+    doc.setFont("Helvetica","normal");
+    doc.text(valor,x+w,py);
+  }
 
   // Cabeçalho
-  caixa(130,"",(x,py)=>{ doc.addImage(logoBase64,"PNG",x+40,py-25,100,100); doc.setFont("Helvetica","bold"); doc.setFontSize(20); doc.text("LITORAL POLIMENTOS",x+280,py,{align:"center"}); doc.setFontSize(18); doc.text("MÁRMORES E GRANITOS",x+280,py+25,{align:"center"}); doc.setFontSize(14); doc.text("ORÇAMENTO",x+280,py+55,{align:"center"}); });
+  caixa(130,"",(x,py)=>{
+    doc.addImage(logoBase64,"PNG",x+40,py-25,100,100);
+    doc.setFont("Helvetica","bold");
+    doc.setFontSize(20);
+    doc.text("LITORAL POLIMENTOS",x+280,py,{align:"center"});
+    doc.setFontSize(18);
+    doc.text("MÁRMORES E GRANITOS",x+280,py+25,{align:"center"});
+    doc.setFontSize(14);
+    doc.text("ORÇAMENTO",x+280,py+55,{align:"center"});
+  });
 
   // Prestador
-  caixa(110,"PRESTADOR DE SERVIÇO",(x,py)=>{ linhaNegrito("Nome:","Litoral Polimentos",x,py); linhaNegrito("CNPJ:","45.406.859/0001-33",x,py+18); linhaNegrito("E-mail:","litoralpolimentos@hotmail.com",x,py+36); linhaNegrito("Contato:","(13) 99726-8855 (Leonardo)",x,py+54); });
+  caixa(110,"PRESTADOR DE SERVIÇO",(x,py)=>{
+    linhaNegrito("Nome:","Litoral Polimentos",x,py);
+    linhaNegrito("CNPJ:","45.406.859/0001-33",x,py+18);
+    linhaNegrito("E-mail:","litoralpolimentos@hotmail.com",x,py+36);
+    linhaNegrito("Contato:","(13) 99726-8855 (Leonardo)",x,py+54);
+  });
 
   // Tomador
   const cliente = document.getElementById("cliente").value;
   const endereco = document.getElementById("endereco").value;
-  caixa(70,"TOMADOR DE SERVIÇO",(x,py)=>{ linhaNegrito("Nome:",cliente,x,py); linhaNegrito("Endereço:",endereco,x,py+18); });
+  caixa(70,"TOMADOR DE SERVIÇO",(x,py)=>{
+    linhaNegrito("Nome:",cliente,x,py);
+    linhaNegrito("Endereço:",endereco,x,py+18);
+  });
 
   // Descrição
   const descricao = document.getElementById("descricao").value;
   const linhasDesc = doc.splitTextToSize(descricao,480);
-  caixa(linhasDesc.length*14+40,"DISCRIMINAÇÃO DO SERVIÇO",(x,py)=>{ doc.setFont("Helvetica","normal"); doc.text(linhasDesc,x,py); });
+  caixa(linhasDesc.length*14+40,"DISCRIMINAÇÃO DO SERVIÇO",(x,py)=>{
+    doc.setFont("Helvetica","normal");
+    doc.text(linhasDesc,x,py);
+  });
 
   // Orçamento
   let valorBruto = valor.value.replace("R$ ","").replace(",",".");
-  let valorNum = parseFloat(valorBruto); if(isNaN(valorNum)) valorNum=0; valorNum=valorNum.toFixed(2).replace(".",",");
+  let valorNum = parseFloat(valorBruto);
+  if(isNaN(valorNum)) valorNum=0;
+  valorNum = valorNum.toFixed(2).replace(".",",");
+
   const prazo = document.getElementById("prazo").value || "";
   const fp = document.getElementById("formaPagamento").value;
   const formaFinal = fp==="50/50"?"50% no início e 50% no término.":fp==="avista"?"À vista.":document.getElementById("formaOutro").value;
-  caixa(90,"ORÇAMENTO",(x,py)=>{ linhaNegrito("Valor Total:","R$ "+valorNum,x,py); linhaNegrito("Prazo:",prazo+" dias",x,py+18); linhaNegrito("Pagamento:",formaFinal,x,py+36); });
+
+  caixa(110,"ORÇAMENTO",(x,py)=>{
+    linhaNegrito("Valor Total:","R$ "+valorNum,x,py);
+    linhaNegrito("Prazo:",prazo+" dias",x,py+18);
+    linhaNegrito("Pagamento:",formaFinal,x,py+36);
+
+    // >>> FRASE FIXA EM VERMELHO
+    doc.setFont("Helvetica","bold");
+    doc.setTextColor(255,0,0);
+    doc.text("Orçamento válido por 45 dias", 300, py+60, {align:"center"});
+    doc.setTextColor(0,0,0); // volta para preto
+  });
 
   // Dados Pagamento
-  caixa(90,"DADOS PARA PAGAMENTO",(x,py)=>{ linhaNegrito("Titular:","Leonardo Libanori",x,py); linhaNegrito("Banco:","Itaú",x,py+18); linhaNegrito("Chave Pix:","276.071.058-08",x,py+36); });
+  caixa(90,"DADOS PARA PAGAMENTO",(x,py)=>{
+    linhaNegrito("Titular:","Leonardo Libanori",x,py);
+    linhaNegrito("Banco:","Itaú",x,py+18);
+    linhaNegrito("Chave Pix:","276.071.058-08",x,py+36);
+  });
 
   // Rodapé
-  caixa(120,"",(x,py)=>{ doc.addImage(logoBase64,"PNG",x+40,py-25,100,100); doc.setFont("Helvetica","bold"); doc.setFontSize(20); doc.text("LITORAL POLIMENTOS",x+280,py,{align:"center"}); doc.setFontSize(18); doc.text("MÁRMORES E GRANITOS",x+280,py+25,{align:"center"}); });
+  caixa(120,"",(x,py)=>{
+    doc.addImage(logoBase64,"PNG",x+40,py-25,100,100);
+    doc.setFont("Helvetica","bold");
+    doc.setFontSize(20);
+    doc.text("LITORAL POLIMENTOS",x+280,py,{align:"center"});
+    doc.setFontSize(18);
+    doc.text("MÁRMORES E GRANITOS",x+280,py+25,{align:"center"});
+  });
 
   lastPdfBlob = doc.output("blob");
   window.open(URL.createObjectURL(lastPdfBlob));
@@ -536,3 +606,4 @@ Contratante								Contratado
 </script>
 </body>
 </html>
+

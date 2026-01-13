@@ -474,6 +474,9 @@ document.getElementById("btnContratoPdf").addEventListener("click", ()=>{
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:"pt", format:"a4" });
   let y = 40;
+const hoje = new Date();
+const dataHoje = hoje.toLocaleDateString("pt-BR");
+
 
   function escrever(texto, negrito=false){
     doc.setFont("Helvetica", negrito ? "bold" : "normal");
@@ -588,22 +591,53 @@ Obrigações do contratado e do contratante descritas:
 5.2. Este contrato é firmado em duas vias de igual teor e forma, ficando uma via com cada uma das partes.
 
 E, por estarem assim justas e contratadas, firmam o presente contrato.
-Praia Grande, ___/___/_____.
+Praia Grande, ${dataHoje}.
 
-_____________________					_____________________
-${c_nome_val}									      LITORAL POLIMENTOS
-Contratante								Contratado
 `);
+y += 40;
 
+// Linhas de assinatura
+doc.line(60, y, 260, y);      // Contratante
+doc.line(330, y, 530, y);    // Contratado
+
+doc.setFont("Helvetica", "normal");
+
+// Nomes
+doc.text(c_nome_val, 160, y + 15, { align: "center" });
+doc.text("LITORAL POLIMENTOS", 430, y + 15, { align: "center" });
+
+// Títulos
+doc.text("Contratante", 160, y + 35, { align: "center" });
+doc.text("Contratado", 430, y + 35, { align: "center" });
   // Salvar PDF global e abrir
   contratoPdfBlob = doc.output("blob");
-  const pdfUrl = doc.output("bloburl");
-  window.open(pdfUrl, "_blank");
-  document.getElementById("btnShareContrato").style.display = "block";
+const url = URL.createObjectURL(contratoPdfBlob);
+window.open(url, "_blank");
+document.getElementById("btnShareContrato").style.display = "block";
+
+document.getElementById("btnShareContrato").addEventListener("click", ()=> {
+    if(!contratoPdfBlob){
+        alert("Gere o PDF antes!");
+        return;
+    }
+
+    const file = new File([contratoPdfBlob], "Contrato.pdf", { type: "application/pdf" });
+
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+        navigator.share({
+            files: [file],
+            title: "Contrato",
+            text: "Segue o contrato em anexo."
+        }).catch(console.error);
+    } else {
+        alert("Seu dispositivo não suporta compartilhamento de arquivos.");
+    }
+});
+
+
 });
 
 
 </script>
 </body>
 </html>
-
